@@ -20,7 +20,34 @@ app.mount("/static", StaticFiles(directory=os.path.join(Path(__file__).parent,
           "static")), name="static")
 
 # In-memory activity database
+# In-memory activity database
 activities = {
+        "Gym Class": {
+            "description": "Physical education and sports activities",
+            "schedule": "Mondays, Wednesdays, Fridays, 2:00 PM - 3:00 PM",
+            "max_participants": 30,
+            "participants": ["john@mergington.edu", "olivia@mergington.edu"]
+        }
+    }
+
+    # DELETE endpoint to remove a participant from an activity
+    @app.delete("/activities/{activity_name}/participants/{email}")
+    async def remove_participant(activity_name: str, email: str, request: Request):
+        decoded_activity = activity_name
+        decoded_email = email
+        # Decode in case of URL encoding
+        try:
+            from urllib.parse import unquote
+            decoded_activity = unquote(activity_name)
+            decoded_email = unquote(email)
+        except Exception:
+            pass
+        if decoded_activity not in activities:
+            raise HTTPException(status_code=404, detail="Activity not found")
+        if decoded_email not in activities[decoded_activity]["participants"]:
+            raise HTTPException(status_code=404, detail="Participant not found in this activity")
+        activities[decoded_activity]["participants"].remove(decoded_email)
+        return {"message": f"{decoded_email} removed from {decoded_activity}"}
     "Baseball Team": {
         "description": "Join the varsity baseball team and compete in regional tournaments",
         "schedule": "Mondays and Wednesdays, 4:00 PM - 5:30 PM",
